@@ -1,0 +1,69 @@
+#!/bin/bash
+# V2Ray Manager 极速安装脚本 (可直接通过URL执行)
+
+# 安装URL
+INSTALL_URL="https://raw.githubusercontent.com/your-repo/v2ray-manager/main/install.sh"
+# 备用URL
+MIRROR_URL="https://cdn.jsdelivr.net/gh/your-repo/v2ray-manager@main/install.sh"
+
+# 颜色定义
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m'
+
+# 检查curl/wget
+check_downloader() {
+    if command -v curl >/dev/null; then
+        DOWNLOADER="curl -sSL"
+    elif command -v wget >/dev/null; then
+        DOWNLOADER="wget -qO-"
+    else
+        echo -e "${RED}错误: 需要 curl 或 wget 来下载安装脚本${NC}"
+        exit 1
+    fi
+}
+
+# 安全执行远程脚本
+safe_install() {
+    local temp_script=$(mktemp)
+    trap "rm -f '$temp_script'" EXIT
+    
+    echo -e "${YELLOW}正在下载安装脚本...${NC}"
+    if ! $DOWNLOADER "$INSTALL_URL" > "$temp_script" 2>/dev/null; then
+        echo -e "${YELLOW}主镜像不可用，尝试备用镜像...${NC}"
+        $DOWNLOADER "$MIRROR_URL" > "$temp_script" || {
+            echo -e "${RED}错误: 无法下载安装脚本${NC}"
+            exit 1
+        }
+    fi
+
+    # 基本脚本验证
+    if ! grep -q "V2Ray Manager" "$temp_script"; then
+        echo -e "${RED}错误: 下载的安装脚本无效${NC}"
+        exit 1
+    fi
+
+    bash "$temp_script"
+}
+
+# 显示欢迎信息
+welcome() {
+    clear
+    echo -e "${GREEN}"
+    echo "  _    __     __   _____  ___    ____  __  __ "
+    echo " | |  / /__  / /  / __/ |/ / |  / / / / / / "
+    echo " | | / / _ \\/ /__/ _//    /| | / / /_/ / / /  "
+    echo " | |/_/\\___/____/___/_/|_/ |_|/_/\\____/ /_/   "
+    echo -e "${NC}"
+    echo -e " V2Ray 全能管理脚本一键安装程序"
+    echo -e " ------------------------------------"
+}
+
+main() {
+    welcome
+    check_downloader
+    safe_install
+}
+
+main "$@"
