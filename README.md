@@ -22,7 +22,7 @@
 ### 极简安装
 ```bash
 # 一键安装命令
-bash <(wget -qO- https://git.io/v2ray.sh)
+
 ```
 
 ### 基本使用
